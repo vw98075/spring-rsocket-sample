@@ -17,3 +17,4 @@ Ths log service hosts the word search log data. It is running on localhost port 
 This log service also sends a request to the word search service for its memory usage. The word search service will respond to the request with free memory data every five seconds. 
 
 More nodes which demonstrate different RSocket interaction models will be added later.
+
