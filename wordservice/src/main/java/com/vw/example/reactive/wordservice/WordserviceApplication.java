@@ -2,7 +2,9 @@ package com.vw.example.reactive.wordservice;
 
 import com.vw.example.reactive.wordservice.data.Word;
 import com.vw.example.reactive.wordservice.data.WordDataPopulationEvent;
+import com.vw.example.reactive.wordservice.data.WordSearchLogData;
 import com.vw.example.reactive.wordservice.repository.WordRepository;
+import com.vw.example.reactive.wordservice.service.WordService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Publisher;
@@ -17,8 +19,11 @@ import org.springframework.data.r2dbc.core.DatabaseClient;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.messaging.rsocket.RSocketStrategies;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.server.RouterFunction;
+import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import java.time.Instant;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
@@ -30,6 +35,7 @@ import java.util.stream.BaseStream;
 import java.util.stream.Stream;
 
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
+import static org.springframework.web.reactive.function.server.ServerResponse.ok;
 
 @Slf4j
 @SpringBootApplication
@@ -81,15 +87,22 @@ public class WordserviceApplication {
 		requesterMono.block().rsocket().dispose();
 	}
 
-//	@Bean
-//	RouterFunction<ServerResponse> findWordsWithCharacters(WordService wordService) {
-//       return route().GET("/words/search/{text}", req -> ok().body(wordService.findWordsOnTrie(req.pathVariable("text"))))
-//                .build();
-
-//		return RouterFunctions
-//				.route(GET("/words/search/{text}").and(RequestPredicates.accept(MediaType.APPLICATION_JSON)), req -> wordService.findWordsOnTrie(req.pathVariable("text")));
-//	}
-
+	@Bean
+	RouterFunction<ServerResponse> findWordsWithCharacters(WordService wordService) {
+       return route()
+			   .GET("/words/search/{text}", req -> {
+			   		String text = req.pathVariable("text");
+				   	requesterMono
+						   .flatMap(requester -> requester.route("log-data")
+								   .data(new WordSearchLogData(text, Instant.now()))
+								   .send())
+//            						.retrieveMono(Notification.class))
+						   .subscribe(n -> log.info("Received notification: {}", n));
+				   
+				   	return ok().body(wordService.findWordsOnTrie(text).map(s -> new String(s + " ")), String.class);
+			   })
+			   .build();
+	}
 }
 
 @Slf4j

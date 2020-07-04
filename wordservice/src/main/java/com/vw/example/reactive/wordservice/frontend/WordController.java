@@ -22,7 +22,7 @@ import java.util.UUID;
 import static java.util.UUID.*;
 
 @Slf4j
-@RestController
+//@RestController
 //@RequiredArgsConstructor
 public class WordController {
 
@@ -35,7 +35,7 @@ public class WordController {
         this.rsocketRequester = rsocketRequester;
     }
 
-    @GetMapping("/words/search")
+//    @GetMapping("/words/search")
     public Flux<String> findWordsContainCharacters(@RequestParam final String text){
 
         rsocketRequester

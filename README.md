@@ -18,3 +18,13 @@ This log service also sends a request to the word search service for its memory 
 
 More nodes which demonstrate different RSocket interaction models will be added later.
 
+### Running Microservices
+
+Bringing up the log service first. Then, bringing up the word search service.
+
+To access the word search API:
+```
+curl http://localhost:8081/words/search/abc;echo;
+```
+Replace "abc" with any characters you like.
+
